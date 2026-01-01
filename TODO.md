@@ -12,7 +12,20 @@
 ### Implementation
 
 #### Pipeline Components
-- [ ] Implement actual RSS/API fetching in `ingestion.py`
+- [x] **Implement actual RSS/API fetching in `ingestion.py`** ✅ COMPLETE
+  - RSS feed parsing with feedparser
+  - API endpoint support
+  - Content extraction and normalization
+  - Age filtering
+- [x] **Implement rate limiting** ✅ COMPLETE
+  - Per-source rate limiter
+  - Configurable requests per minute
+  - Automatic waiting between requests
+- [x] **Implement caching layer** ✅ COMPLETE
+  - Redis-based distributed cache
+  - Graceful degradation if Redis unavailable
+  - Configurable TTL
+  - Cache key generation
 - [ ] Implement embedding-based article grouping in `comparison.py`
 - [ ] Implement LLM summarization in `summarization.py`
 - [ ] Implement bias detection rules in `bias_detection.py`

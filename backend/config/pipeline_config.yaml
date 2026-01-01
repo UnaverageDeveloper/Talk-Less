@@ -28,6 +28,10 @@ ingestion:
   
   # Cache settings
   cache_ttl_seconds: 300  # 5 minutes
+  redis_url: "redis://localhost:6379/0"  # Redis connection URL
+  
+  # Rate limiting (requests per minute per source)
+  rate_limit: 10
   
   # Respect robots.txt
   respect_robots_txt: true
