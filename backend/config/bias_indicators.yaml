@@ -1,0 +1,119 @@
+# Bias Detection Rules
+#
+# This file defines patterns used to detect potential bias in articles.
+# These are heuristics, not perfect detection - they will have false positives.
+#
+# All changes to this file must include rationale.
+
+# Emotionally Loaded Words
+# Words that may indicate emotional framing rather than neutral reporting
+loaded_words:
+  # Strong negative connotations
+  - word: "slammed"
+    category: "emotional_verb"
+    rationale: "Overused in headlines to create drama"
+    
+  - word: "blasted"
+    category: "emotional_verb"
+    rationale: "Inflammatory verb with little informational content"
+    
+  - word: "destroyed"
+    category: "emotional_verb"
+    rationale: "Hyperbolic language in non-literal context"
+    
+  - word: "annihilated"
+    category: "emotional_verb"
+    rationale: "Extreme language inappropriate for most news"
+  
+  # Emotional nouns
+  - word: "outrage"
+    category: "emotional_noun"
+    rationale: "Describes emotion rather than facts"
+    
+  - word: "firestorm"
+    category: "emotional_noun"
+    rationale: "Metaphorical exaggeration"
+  
+  # Loaded adjectives
+  - word: "shocking"
+    category: "emotional_adjective"
+    rationale: "Tells reader how to feel rather than what happened"
+    
+  - word: "stunning"
+    category: "emotional_adjective"
+    rationale: "Injects subjective judgment"
+
+# Attribution Patterns
+# Patterns that may indicate weak or biased attribution
+attribution_issues:
+  - pattern: "sources say"
+    issue: "anonymous_sources"
+    rationale: "Unnamed sources reduce verifiability"
+    
+  - pattern: "sources familiar with"
+    issue: "anonymous_sources"
+    rationale: "Vague attribution reduces accountability"
+    
+  - pattern: "critics say"
+    issue: "vague_group"
+    rationale: "Who are the critics? How many? What standing?"
+    
+  - pattern: "experts warn"
+    issue: "vague_group"
+    rationale: "Which experts? In what field? Consensus or outliers?"
+    
+  - pattern: "some people believe"
+    issue: "vague_attribution"
+    rationale: "Meaningless quantification"
+
+# Framing Indicators
+# Patterns that may indicate one-sided or biased framing
+framing_patterns:
+  - pattern: "only quotes from one political party"
+    indicator: "one_sided_quotes"
+    rationale: "May indicate framing bias"
+    
+  - pattern: "headline contradicts body"
+    indicator: "misleading_headline"
+    rationale: "May indicate clickbait or bias in emphasis"
+    
+  - pattern: "unattributed opinion in news section"
+    indicator: "opinion_in_news"
+    rationale: "Opinion should be clearly marked"
+
+# Omission Indicators
+# Things that might signal bias by omission
+omission_flags:
+  - indicator: "missing_counterargument"
+    description: "Strong claim without presenting opposing view"
+    
+  - indicator: "missing_context"
+    description: "Statistical claim without baseline or comparison"
+    
+  - indicator: "missing_outcome"
+    description: "Report on prediction without checking if it happened"
+
+# Detection Settings
+settings:
+  # How to weight different indicators
+  weights:
+    loaded_words: 1.0
+    attribution_issues: 1.5
+    framing_patterns: 2.0
+    omission_flags: 1.5
+  
+  # Confidence thresholds
+  confidence_levels:
+    high: 3.0    # Total weighted score
+    medium: 1.5
+    low: 0.5
+  
+  # Context windows for pattern matching
+  context_window_words: 50
+
+# Important Notes:
+# - These rules WILL have false positives
+# - Context matters - not all loaded words indicate bias
+# - These are starting heuristics, not comprehensive
+# - Rules should be refined based on real-world performance
+# - No rule-based system can catch all bias
