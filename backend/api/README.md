@@ -1,0 +1,263 @@
+# Talk-Less Backend API
+
+RESTful API for serving news summaries with no tracking, no personalization, and full transparency.
+
+## Core Principles
+
+- **Read-only**: No POST/PUT/DELETE for user data
+- **No authentication**: Public API, no accounts needed
+- **No tracking**: No cookies, no sessions, no user data
+- **No personalization**: Everyone sees the same content
+- **Cacheable**: Aggressive caching for performance
+- **Transparent**: All data includes source citations
+
+## Running the API
+
+### Development
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run with auto-reload
+python backend/api/server.py
+
+# Or use uvicorn directly
+uvicorn backend.api.server:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Production
+
+```bash
+# Use multiple workers
+uvicorn backend.api.server:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+## API Endpoints
+
+### `GET /`
+Root endpoint - API information and available endpoints.
+
+**Response:**
+```json
+{
+  "name": "Talk-Less API",
+  "version": "0.1.0",
+  "description": "Open-source, public-good news platform",
+  "principles": [...],
+  "endpoints": {...}
+}
+```
+
+### `GET /summaries`
+Get recent news summaries.
+
+**Query Parameters:**
+- `limit` (int, 1-100): Number of summaries to return (default: 20)
+- `offset` (int, ≥0): Offset for pagination (default: 0)
+
+**Response:**
+```json
+{
+  "summaries": [
+    {
+      "id": "abc123",
+      "topic": "Policy Announcement",
+      "summary": "...",
+      "sources": [...],
+      "bias_indicators": [...],
+      "created_at": "2026-01-01T12:00:00Z"
+    }
+  ],
+  "total": 100,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+### `GET /summaries/{id}`
+Get a specific summary by ID.
+
+**Response:**
+```json
+{
+  "id": "abc123",
+  "topic": "Policy Announcement",
+  "summary": "Full summary text with citations...",
+  "sources": [
+    {
+      "title": "Article Title",
+      "url": "https://...",
+      "source": "Source Name",
+      "published_at": "2026-01-01T10:00:00Z"
+    }
+  ],
+  "perspectives": [...],
+  "bias_indicators": [...],
+  "confidence": "high",
+  "created_at": "2026-01-01T12:00:00Z"
+}
+```
+
+### `GET /sources`
+List all configured news sources.
+
+**Response:**
+```json
+{
+  "sources": [
+    {
+      "name": "Source Name",
+      "url": "https://...",
+      "documented_lean": "center-left",
+      "rationale": "...",
+      "last_fetch": "2026-01-01T11:00:00Z"
+    }
+  ],
+  "selection_criteria": [...]
+}
+```
+
+### `GET /transparency`
+Get transparency and audit data.
+
+**Response:**
+```json
+{
+  "pipeline_stats": {
+    "last_run": "2026-01-01T12:00:00Z",
+    "articles_fetched": 150,
+    "summaries_generated": 25,
+    "bias_indicators_detected": 45
+  },
+  "system_info": {
+    "version": "0.1.0",
+    "license": "AGPL v3",
+    "source_code": "https://..."
+  },
+  "principles": {
+    "no_tracking": true,
+    "no_personalization": true,
+    "no_monetization": true,
+    "open_source": true
+  }
+}
+```
+
+### `GET /about`
+Get information about the Talk-Less platform.
+
+**Response:**
+```json
+{
+  "name": "Talk-Less",
+  "tagline": "...",
+  "philosophy": {...},
+  "documentation": {...},
+  "license": "AGPL v3",
+  "repository": "https://..."
+}
+```
+
+### `GET /health`
+Health check endpoint for monitoring.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-01T12:00:00Z"
+}
+```
+
+## Database Schema
+
+The API uses SQLAlchemy ORM with the following models:
+
+- **Summary**: Generated news summaries
+- **SourceArticle**: Original articles used in summaries
+- **BiasIndicatorRecord**: Detected bias indicators
+- **PipelineRun**: Audit trail of pipeline executions
+
+See `backend/api/models.py` for details.
+
+## Caching
+
+The API is designed for aggressive caching:
+
+- All GET endpoints return cache-friendly responses
+- No user-specific data
+- CDN-friendly headers
+- Long cache times for historical data
+
+## CORS
+
+CORS is open to all origins since this is a public API with no authentication.
+
+## Error Handling
+
+- `404`: Resource not found
+- `422`: Validation error (invalid parameters)
+- `500`: Internal server error
+
+All errors return JSON with `error` and `message` fields.
+
+## Testing
+
+```bash
+# Run API tests
+pytest tests/test_api.py -v
+
+# Run with coverage
+pytest tests/test_api.py --cov=backend.api
+```
+
+## Interactive Documentation
+
+When the server is running:
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Configuration
+
+Set via environment variables:
+
+- `DATABASE_URL`: Database connection string (default: SQLite)
+- `LOG_LEVEL`: Logging level (default: INFO)
+
+## Design Decisions
+
+### Why No Authentication?
+
+Talk-Less is a public-good platform. Everyone should have equal access to the same information without barriers.
+
+### Why No POST/PUT/DELETE?
+
+The API is read-only for users. Content is generated by the automated pipeline, not submitted by users.
+
+### Why Open CORS?
+
+The API is designed to be embedded anywhere. No proprietary clients or control over who uses it.
+
+### Why SQLite Default?
+
+Makes development easy. Production should use PostgreSQL for better performance and concurrency.
+
+## Security
+
+- No user input to database (read-only API)
+- No file uploads
+- No authentication = no credential theft
+- Rate limiting at infrastructure level
+
+## Performance
+
+- Stateless API (easy horizontal scaling)
+- Database connection pooling
+- Designed for CDN caching
+- Async where beneficial (FastAPI)
+
+## License
+
+AGPL v3 - see LICENSE file.
