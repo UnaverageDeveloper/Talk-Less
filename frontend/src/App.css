@@ -1,0 +1,372 @@
+/*
+ * Talk-Less Global Styles
+ * Copyright (C) 2024 Talk-Less Contributors
+ * Licensed under AGPL-3.0-or-later
+ */
+
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #34495e;
+  --accent-color: #3498db;
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --bg-primary: #ffffff;
+  --bg-secondary: #ecf0f1;
+  --bg-tertiary: #f8f9fa;
+  --border-color: #ddd;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --max-width: 1200px;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  line-height: 1.6;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--spacing-lg) var(--spacing-md);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Typography */
+h1 {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-color);
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--secondary-color);
+}
+
+p {
+  margin-bottom: var(--spacing-sm);
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+a:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Buttons */
+button, .button {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  font-family: inherit;
+}
+
+button:hover, .button:hover {
+  background-color: var(--primary-color);
+  text-decoration: none;
+}
+
+button:active, .button:active {
+  transform: translateY(1px);
+}
+
+button:focus, .button:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  background-color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-color);
+}
+
+.card-meta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.loading::after {
+  content: '...';
+  animation: ellipsis 1.5s infinite;
+}
+
+@keyframes ellipsis {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+/* Error State */
+.error {
+  background-color: #fee;
+  border: 1px solid var(--danger-color);
+  border-radius: 4px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  color: var(--danger-color);
+}
+
+.error-title {
+  font-weight: bold;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.empty-state h2 {
+  color: var(--text-secondary);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-primary {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.badge-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.badge-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.badge-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Lists */
+ul, ol {
+  margin-left: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+li {
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Content Sections */
+.section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-title {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  :root {
+    --spacing-lg: 1.5rem;
+    --spacing-md: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  .main-content {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .card {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  button, .button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.9rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+  }
+}

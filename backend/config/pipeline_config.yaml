@@ -1,0 +1,167 @@
+# Pipeline Configuration
+#
+# Controls behavior of the news processing pipeline
+
+# Scheduling
+schedule:
+  # How often to run the pipeline (cron format)
+  # Every 2 hours during daytime: 0 */2 6-22 * * *
+  cron: "0 */2 6-22 * * *"
+  
+  # Timezone for scheduling
+  timezone: "UTC"
+
+# Ingestion Settings
+ingestion:
+  # Article age limit (hours)
+  max_article_age_hours: 48
+  
+  # Concurrent fetch limit
+  max_concurrent_fetches: 5
+  
+  # Timeout for fetching (seconds)
+  fetch_timeout_seconds: 30
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay_seconds: 5
+  
+  # Cache settings
+  cache_ttl_seconds: 300  # 5 minutes
+  redis_url: "redis://localhost:6379/0"  # Redis connection URL
+  
+  # Rate limiting (requests per minute per source)
+  rate_limit: 10
+  
+  # Respect robots.txt
+  respect_robots_txt: true
+  
+  # User agent
+  user_agent: "TalkLess-Bot/0.1 (https://github.com/UnaverageDeveloper/Talk-Less; open-source news aggregator)"
+
+# Comparison Settings
+comparison:
+  # Minimum articles needed to create a group
+  min_articles_per_group: 2
+  
+  # Similarity threshold for grouping (0-1)
+  similarity_threshold: 0.7
+  
+  # Embedding model for similarity
+  embedding_model: "text-embedding-ada-002"
+  
+  # Maximum articles per group
+  max_articles_per_group: 10
+
+# Summarization Settings
+summarization:
+  # LLM model to use
+  model: "gpt-4"
+  
+  # Temperature (0-1, lower = more deterministic)
+  temperature: 0.3
+  
+  # Maximum summary length (characters)
+  max_summary_length: 1000
+  
+  # Minimum summary length (characters)
+  min_summary_length: 200
+  
+  # Require citations for all claims
+  require_citations: true
+  
+  # Maximum retries if summary validation fails
+  max_retries: 2
+
+# Bias Detection Settings
+bias_detection:
+  # Enable bias detection
+  enabled: true
+  
+  # Minimum confidence to report (low, medium, high)
+  min_confidence: "low"
+  
+  # Generate transparency reports
+  generate_reports: true
+
+# Logging Settings
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: "INFO"
+  
+  # Log format
+  format: "json"
+  
+  # Include timestamps
+  include_timestamps: true
+  
+  # Log to file
+  log_to_file: true
+  log_file_path: "/var/log/talkless/pipeline.log"
+  
+  # Log rotation
+  max_log_size_mb: 100
+  max_log_files: 10
+
+# Output Settings
+output:
+  # Where to store generated summaries
+  storage_type: "postgresql"  # or "json", "sqlite"
+  
+  # Database connection (if using postgresql)
+  database_url: "postgresql://localhost/talkless"
+  
+  # Export public data
+  export_public_data: true
+  export_path: "/var/www/talkless/data"
+
+# Rate Limiting
+rate_limiting:
+  # Global rate limit (requests per minute)
+  global_requests_per_minute: 100
+  
+  # Per-source rate limits defined in sources.yaml
+
+# Performance
+performance:
+  # Enable caching
+  enable_caching: true
+  
+  # Cache backend
+  cache_backend: "redis"
+  cache_url: "redis://localhost:6379/0"
+  
+  # Batch processing
+  batch_size: 10
+  
+  # Parallel processing workers
+  num_workers: 4
+
+# Error Handling
+error_handling:
+  # Continue on source fetch errors
+  continue_on_fetch_error: true
+  
+  # Continue on summarization errors
+  continue_on_summary_error: false
+  
+  # Alert on repeated errors
+  alert_threshold: 3
+  alert_email: "alerts@talkless.example"  # TODO: Set up actual alerting
+
+# Audit Settings
+audit:
+  # Enable audit logging
+  enabled: true
+  
+  # Audit log location
+  audit_log_path: "/var/log/talkless/audit.log"
+  
+  # Log all decisions
+  log_source_selections: true
+  log_article_groupings: true
+  log_bias_detections: true
+  log_summary_generations: true
+  
+  # Make audit logs public (after anonymization if needed)
+  public_audit_logs: true

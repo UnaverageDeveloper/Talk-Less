@@ -1,0 +1,147 @@
+.header {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--spacing-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.header-brand {
+  flex: 1;
+}
+
+.header-logo {
+  color: white;
+  text-decoration: none;
+}
+
+.header-logo:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.header-logo h1 {
+  color: white;
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.header-tagline {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  gap: 4px;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background-color: white;
+  transition: all 0.3s;
+  border-radius: 2px;
+}
+
+.header-nav {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: var(--spacing-md);
+  margin: 0;
+  align-items: center;
+}
+
+.nav-list a {
+  color: white;
+  text-decoration: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.nav-list a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.nav-list a.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+.nav-list a:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-wrap: wrap;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .header-nav {
+    display: none;
+    width: 100%;
+    order: 3;
+  }
+
+  .header-nav.mobile-open {
+    display: flex;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    width: 100%;
+    gap: 0;
+  }
+
+  .nav-list li {
+    width: 100%;
+  }
+
+  .nav-list a {
+    display: block;
+    padding: var(--spacing-sm);
+    border-radius: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-logo h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-tagline {
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,58 @@
+# News Source Configuration
+#
+# This file defines which news sources Talk-Less monitors.
+# All changes to this file must include rationale.
+#
+# Source Selection Criteria:
+# 1. Editorial transparency
+# 2. Fact-checking track record
+# 3. Diverse perspectives
+# 4. Consistent publication
+# 5. RSS/API availability
+
+sources:
+  # Note: This is a starter list for development.
+  # Production will require careful source selection with community input.
+  
+  - name: "Example Source A"
+    url: "https://example-a.com/rss"
+    type: "rss"
+    documented_lean: "center-left"
+    rationale: "Placeholder for development - to be replaced with real sources"
+    fact_check_rating: "high"
+    added_date: "2026-01-01"
+    rate_limit:
+      requests_per_minute: 10
+      burst: 20
+  
+  - name: "Example Source B"
+    url: "https://example-b.com/rss"
+    type: "rss"
+    documented_lean: "center-right"
+    rationale: "Placeholder for development - to be replaced with real sources"
+    fact_check_rating: "high"
+    added_date: "2026-01-01"
+    rate_limit:
+      requests_per_minute: 10
+      burst: 20
+
+# Source Selection Rules
+selection_rules:
+  # Require at least this many sources per summary
+  min_sources_per_summary: 2
+  
+  # Require perspective diversity
+  require_diverse_leans: true
+  
+  # Maximum age of articles to include
+  max_article_age_hours: 48
+  
+  # Minimum credibility score (0-100)
+  min_credibility_score: 70
+
+# Notes on Source Diversity:
+# - We aim for political diversity (left, center, right)
+# - We aim for geographic diversity (local, national, international)
+# - We aim for media type diversity (print, broadcast, online-native)
+# - Diversity does not mean equal weighting of all perspectives
+# - Demonstrable falsehoods are not "perspectives" to balance
