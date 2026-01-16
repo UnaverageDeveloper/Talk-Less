@@ -1,0 +1,127 @@
+.source-list {
+  width: 100%;
+}
+
+.sources-info {
+  background: var(--bg-primary);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-lg);
+  border-left: 4px solid var(--accent-color);
+}
+
+.sources-info h2 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.sources-info ul {
+  margin-top: var(--spacing-sm);
+}
+
+.sources-info li {
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.6;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.source-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.source-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.source-card-title {
+  font-size: 1.25rem;
+  margin: 0;
+  flex: 1;
+}
+
+.source-url {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  margin-bottom: var(--spacing-sm);
+  word-break: break-all;
+}
+
+.source-description {
+  flex: 1;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-sm);
+}
+
+.source-metadata {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.source-meta-item {
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-secondary);
+}
+
+.source-meta-item strong {
+  color: var(--text-primary);
+}
+
+.source-tech {
+  margin-top: auto;
+  padding-top: var(--spacing-xs);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.sources-methodology {
+  background: var(--bg-primary);
+  padding: var(--spacing-lg);
+  border-radius: 8px;
+  margin-top: var(--spacing-lg);
+}
+
+.sources-methodology h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.sources-methodology p {
+  line-height: 1.7;
+  margin-bottom: var(--spacing-md);
+}
+
+.sources-methodology ol {
+  margin-bottom: var(--spacing-md);
+}
+
+.sources-methodology li {
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .sources-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .source-card-header {
+    flex-direction: column;
+    align-items: start;
+  }
+}

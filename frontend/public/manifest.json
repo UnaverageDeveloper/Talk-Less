@@ -1,0 +1,10 @@
+{
+  "short_name": "Talk-Less",
+  "name": "Talk-Less: Transparent News Aggregation",
+  "description": "Multi-perspective news aggregation without tracking or manipulation",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2c3e50",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary"
+}

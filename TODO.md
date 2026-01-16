@@ -57,10 +57,27 @@
 - [x] **Set up database models** ✅ COMPLETE (4 models)
 
 #### Frontend
-- [ ] Set up frontend framework
-- [ ] Create summary display UI
-- [ ] Implement source attribution display
-- [ ] Add bias transparency indicators
+- [x] **Set up frontend framework** ✅ COMPLETE (Phase 5)
+  - React 18 with functional components and hooks
+  - React Router 6 for client-side routing
+  - Responsive, accessible design (WCAG 2.1 AA)
+  - No tracking or analytics
+- [x] **Create summary display UI** ✅ COMPLETE (Phase 5)
+  - SummaryList component with pagination
+  - SummaryDetail component with full content
+  - Loading states and error handling
+  - Mobile-responsive design
+- [x] **Implement source attribution display** ✅ COMPLETE (Phase 5)
+  - Source articles with citations
+  - External links to original articles
+  - Source metadata (name, date, perspective)
+  - Transparency in attribution
+- [x] **Add bias transparency indicators** ✅ COMPLETE (Phase 5)
+  - BiasIndicators component (compact and full modes)
+  - Source diversity score visualization
+  - Loaded language and unsupported claims counts
+  - Perspective balance charts
+  - Transparency flags display
 
 #### Testing
 - [x] **Write unit tests for pipeline components** ✅ COMPLETE
