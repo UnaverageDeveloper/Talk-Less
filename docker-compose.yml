@@ -1,0 +1,142 @@
+# Talk-Less Platform - Docker Compose Configuration
+# Copyright (C) 2026 Talk-Less Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version: '3.8'
+
+services:
+  # Redis cache service
+  redis:
+    image: redis:7-alpine
+    container_name: talkless-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL database service
+  postgres:
+    image: postgres:15-alpine
+    container_name: talkless-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: talkless
+      POSTGRES_USER: talkless
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U talkless"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Talk-Less API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talkless-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://talkless:${DB_PASSWORD:-changeme}@postgres:5432/talkless
+      
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # LLM API keys (set in .env file)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      
+      # Pipeline configuration
+      PIPELINE_CONFIG_PATH: /app/backend/config/pipeline_config.yaml
+      SOURCES_CONFIG_PATH: /app/backend/config/sources.yaml
+      BIAS_CONFIG_PATH: /app/backend/config/bias_indicators.yaml
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/config:/app/backend/config:ro
+      - api_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Pipeline runner (scheduled job)
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talkless-pipeline
+    restart: unless-stopped
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://talkless:${DB_PASSWORD:-changeme}@postgres:5432/talkless
+      
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # LLM API keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      
+      # Pipeline configuration
+      PIPELINE_CONFIG_PATH: /app/backend/config/pipeline_config.yaml
+      SOURCES_CONFIG_PATH: /app/backend/config/sources.yaml
+      BIAS_CONFIG_PATH: /app/backend/config/bias_indicators.yaml
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/config:/app/backend/config:ro
+      - pipeline_logs:/app/logs
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...';
+        sleep 30;
+        while true; do
+          echo 'Running pipeline...';
+          python backend/pipeline/run.py;
+          echo 'Pipeline complete. Waiting 30 minutes...';
+          sleep 1800;
+        done
+      "
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  api_logs:
+    driver: local
+  pipeline_logs:
+    driver: local
+
+networks:
+  default:
+    name: talkless-network
