@@ -20,14 +20,17 @@
 Bias Detection Module
 
 Responsible for:
-- Detecting bias indicators in articles
+- Detecting bias indicators in articles using rules
 - Documenting bias patterns
 - Flagging problematic language
 - Creating transparency reports
 """
 
 import logging
+import re
+import yaml
 from typing import List, Dict, Any, Set, Optional
+from pathlib import Path
 from .ingestion import Article
 
 logger = logging.getLogger(__name__)
@@ -42,48 +45,80 @@ class BiasIndicator:
         description: str,
         confidence: str,
         examples: List[str],
+        category: Optional[str] = None,
+        rationale: Optional[str] = None,
     ):
         self.indicator_type = indicator_type
         self.description = description
         self.confidence = confidence
         self.examples = examples
+        self.category = category
+        self.rationale = rationale
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert indicator to dictionary."""
-        return {
+        result = {
             "type": self.indicator_type,
             "description": self.description,
             "confidence": self.confidence,
             "examples": self.examples,
         }
+        if self.category:
+            result["category"] = self.category
+        if self.rationale:
+            result["rationale"] = self.rationale
+        return result
 
 
 class BiasDetector:
-    """Detects and documents bias in articles."""
+    """Detects and documents bias in articles using configurable rules."""
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], rules_file: Optional[str] = None):
         """
-        Initialize the bias detector.
+        Initialize the bias detector with rules.
         
         Args:
-            config: Configuration with bias detection rules
+            config: Configuration with bias detection settings
+            rules_file: Path to bias_indicators.yaml file
         """
         self.config = config
-        self.loaded_words = self._load_loaded_words()
-        self.attribution_patterns = self._load_attribution_patterns()
-        logger.info("Initialized BiasDetector")
+        self.enabled = config.get("enabled", True)
+        self.min_confidence = config.get("min_confidence", "low")
+        self.context_window = 50  # words before/after for context
+        
+        # Load bias detection rules
+        if rules_file is None:
+            # Default path
+            rules_file = str(Path(__file__).parent.parent / "config" / "bias_indicators.yaml")
+        
+        self.rules = self._load_rules(rules_file)
+        self.loaded_words = self._extract_loaded_words()
+        self.attribution_patterns = self._extract_attribution_patterns()
+        self.weights = self.rules.get("settings", {}).get("weights", {})
+        
+        logger.info(f"Initialized BiasDetector with {len(self.loaded_words)} loaded words "
+                   f"and {len(self.attribution_patterns)} attribution patterns")
     
-    def _load_loaded_words(self) -> Set[str]:
-        """Load emotionally loaded words from configuration."""
-        # TODO: Load from config file
-        # Examples: "slammed", "blasted", "outrage", etc.
-        return set()
+    def _load_rules(self, rules_file: str) -> Dict[str, Any]:
+        """Load bias detection rules from YAML file."""
+        try:
+            with open(rules_file, 'r') as f:
+                rules = yaml.safe_load(f)
+            logger.debug(f"Loaded bias rules from {rules_file}")
+            return rules
+        except Exception as e:
+            logger.error(f"Failed to load bias rules: {e}")
+            return {}
     
-    def _load_attribution_patterns(self) -> List[str]:
-        """Load attribution patterns to check for."""
-        # TODO: Load from config file
-        # Examples: "sources say", "reports indicate", etc.
-        return []
+    def _extract_loaded_words(self) -> List[Dict[str, str]]:
+        """Extract emotionally loaded words from rules."""
+        loaded_words = self.rules.get("loaded_words", [])
+        return loaded_words
+    
+    def _extract_attribution_patterns(self) -> List[Dict[str, str]]:
+        """Extract attribution patterns from rules."""
+        attribution = self.rules.get("attribution_issues", [])
+        return attribution
     
     def detect_bias(self, article: Article) -> List[BiasIndicator]:
         """
@@ -95,29 +130,68 @@ class BiasDetector:
         Returns:
             List of detected BiasIndicator objects
         """
+        if not self.enabled:
+            return []
+        
         logger.debug(f"Detecting bias in article: {article.title}")
         
         indicators = []
+        scores = {}  # Track scores by category
         
         # Check for loaded language
-        loaded_language = self._check_loaded_language(article)
-        if loaded_language:
-            indicators.append(loaded_language)
+        loaded_indicators = self._check_loaded_language(article)
+        if loaded_indicators:
+            indicators.extend(loaded_indicators)
+            scores["loaded_words"] = len(loaded_indicators)
         
         # Check attribution quality
-        attribution = self._check_attribution(article)
-        if attribution:
-            indicators.append(attribution)
+        attribution_indicators = self._check_attribution(article)
+        if attribution_indicators:
+            indicators.extend(attribution_indicators)
+            scores["attribution_issues"] = len(attribution_indicators)
         
         # Check framing
-        framing = self._check_framing(article)
-        if framing:
-            indicators.append(framing)
+        framing_indicators = self._check_framing(article)
+        if framing_indicators:
+            indicators.extend(framing_indicators)
+            scores["framing_patterns"] = len(framing_indicators)
         
-        logger.debug(f"Found {len(indicators)} bias indicators")
+        # Calculate overall confidence based on weighted scores
+        total_score = 0
+        for category, count in scores.items():
+            weight = self.weights.get(category, 1.0)
+            total_score += count * weight
+        
+        # Filter by minimum confidence
+        confidence_thresholds = self.rules.get("settings", {}).get("confidence_levels", {})
+        high_threshold = confidence_thresholds.get("high", 3.0)
+        medium_threshold = confidence_thresholds.get("medium", 1.5)
+        low_threshold = confidence_thresholds.get("low", 0.5)
+        
+        # Assign overall confidence to indicators
+        if total_score >= high_threshold:
+            overall_confidence = "high"
+        elif total_score >= medium_threshold:
+            overall_confidence = "medium"
+        elif total_score >= low_threshold:
+            overall_confidence = "low"
+        else:
+            overall_confidence = "none"
+        
+        # Filter by configured minimum confidence
+        min_conf_order = ["low", "medium", "high"]
+        min_conf_idx = min_conf_order.index(self.min_confidence)
+        if overall_confidence != "none":
+            overall_conf_idx = min_conf_order.index(overall_confidence)
+            if overall_conf_idx < min_conf_idx:
+                logger.debug(f"Filtered out indicators: {overall_confidence} < {self.min_confidence}")
+                return []
+        
+        logger.debug(f"Found {len(indicators)} bias indicators (score: {total_score:.1f}, "
+                    f"confidence: {overall_confidence})")
         return indicators
     
-    def _check_loaded_language(self, article: Article) -> Optional[BiasIndicator]:
+    def _check_loaded_language(self, article: Article) -> List[BiasIndicator]:
         """
         Check for emotionally loaded language.
         
@@ -125,19 +199,47 @@ class BiasDetector:
             article: Article to check
             
         Returns:
-            BiasIndicator if loaded language found, None otherwise
+            List of BiasIndicators found
         """
-        if not article.content:
-            return None
+        if not article.content and not article.title:
+            return []
         
-        # TODO: Implement loaded language detection
-        # - Check against word list
-        # - Consider context
-        # - Avoid false positives
+        indicators = []
+        text = f"{article.title} {article.content or ''}"
+        text_lower = text.lower()
+        words = text_lower.split()
         
-        return None
+        for word_rule in self.loaded_words:
+            word = word_rule.get("word", "").lower()
+            category = word_rule.get("category", "unknown")
+            rationale = word_rule.get("rationale", "")
+            
+            # Find occurrences
+            pattern = r'\b' + re.escape(word) + r'\b'
+            matches = list(re.finditer(pattern, text_lower))
+            
+            if matches:
+                examples = []
+                for match in matches[:3]:  # Limit to 3 examples
+                    start = max(0, match.start() - 50)
+                    end = min(len(text), match.end() + 50)
+                    context = text[start:end]
+                    examples.append(f"...{context}...")
+                
+                indicator = BiasIndicator(
+                    indicator_type="loaded_language",
+                    description=f"Emotionally loaded word: '{word}'",
+                    confidence="medium",
+                    examples=examples,
+                    category=category,
+                    rationale=rationale
+                )
+                indicators.append(indicator)
+                logger.debug(f"Found loaded word '{word}' {len(matches)} time(s)")
+        
+        return indicators
     
-    def _check_attribution(self, article: Article) -> Optional[BiasIndicator]:
+    def _check_attribution(self, article: Article) -> List[BiasIndicator]:
         """
         Check quality of source attribution.
         
@@ -145,19 +247,44 @@ class BiasDetector:
             article: Article to check
             
         Returns:
-            BiasIndicator if poor attribution found, None otherwise
+            List of BiasIndicators found
         """
         if not article.content:
-            return None
+            return []
         
-        # TODO: Implement attribution checking
-        # - Look for named sources vs anonymous
-        # - Check for "sources say" patterns
-        # - Verify quote attribution
+        indicators = []
+        text = article.content.lower()
         
-        return None
+        for attr_rule in self.attribution_patterns:
+            pattern = attr_rule.get("pattern", "")
+            issue = attr_rule.get("issue", "")
+            rationale = attr_rule.get("rationale", "")
+            
+            # Find occurrences
+            matches = list(re.finditer(re.escape(pattern.lower()), text))
+            
+            if matches:
+                examples = []
+                for match in matches[:3]:  # Limit to 3 examples
+                    start = max(0, match.start() - 50)
+                    end = min(len(article.content), match.end() + 50)
+                    context = article.content[start:end]
+                    examples.append(f"...{context}...")
+                
+                indicator = BiasIndicator(
+                    indicator_type="attribution_issue",
+                    description=f"Weak attribution: '{pattern}' ({issue})",
+                    confidence="medium",
+                    examples=examples,
+                    category=issue,
+                    rationale=rationale
+                )
+                indicators.append(indicator)
+                logger.debug(f"Found attribution issue '{pattern}' {len(matches)} time(s)")
+        
+        return indicators
     
-    def _check_framing(self, article: Article) -> Optional[BiasIndicator]:
+    def _check_framing(self, article: Article) -> List[BiasIndicator]:
         """
         Check for biased framing.
         
@@ -165,17 +292,35 @@ class BiasDetector:
             article: Article to check
             
         Returns:
-            BiasIndicator if biased framing found, None otherwise
+            List of BiasIndicators found
         """
         if not article.content:
-            return None
+            return []
         
-        # TODO: Implement framing analysis
-        # - Check for one-sided quotes
-        # - Look for missing perspectives
-        # - Identify emphasis patterns
+        indicators = []
         
-        return None
+        # Check for headline vs body mismatch (basic check)
+        if article.title and article.content:
+            title_words = set(article.title.lower().split())
+            content_words = set(article.content.lower().split()[:100])  # First 100 words
+            
+            # If title has strong claims not in first part of body
+            strong_words = {"shocking", "stunning", "outrage", "bombshell", "explosive"}
+            title_strong = title_words & strong_words
+            
+            if title_strong and not (title_strong & content_words):
+                indicator = BiasIndicator(
+                    indicator_type="framing_issue",
+                    description="Headline uses strong language not found in article opening",
+                    confidence="low",
+                    examples=[article.title],
+                    category="headline_framing",
+                    rationale="May indicate clickbait or emphasis bias"
+                )
+                indicators.append(indicator)
+                logger.debug("Found potential headline framing issue")
+        
+        return indicators
     
     def generate_transparency_report(
         self,
@@ -194,18 +339,53 @@ class BiasDetector:
         """
         logger.info("Generating bias transparency report")
         
+        # Count indicators by type
+        indicator_types = {}
+        indicator_categories = {}
+        source_breakdown = {}
+        
+        for article_id, indicators in indicators_per_article.items():
+            # Find corresponding article
+            article = next((a for a in articles if a.article_id == article_id), None)
+            if not article:
+                continue
+            
+            source = article.source
+            if source not in source_breakdown:
+                source_breakdown[source] = {
+                    "articles_analyzed": 0,
+                    "articles_with_indicators": 0,
+                    "total_indicators": 0,
+                }
+            
+            source_breakdown[source]["articles_analyzed"] += 1
+            
+            if indicators:
+                source_breakdown[source]["articles_with_indicators"] += 1
+                source_breakdown[source]["total_indicators"] += len(indicators)
+                
+                for indicator in indicators:
+                    # Count by type
+                    ind_type = indicator.indicator_type
+                    indicator_types[ind_type] = indicator_types.get(ind_type, 0) + 1
+                    
+                    # Count by category
+                    if indicator.category:
+                        indicator_categories[indicator.category] = \
+                            indicator_categories.get(indicator.category, 0) + 1
+        
         report = {
             "total_articles": len(articles),
             "articles_with_indicators": len(indicators_per_article),
-            "indicator_types": {},
-            "source_breakdown": {},
+            "total_indicators": sum(len(v) for v in indicators_per_article.values()),
+            "indicator_types": indicator_types,
+            "indicator_categories": indicator_categories,
+            "source_breakdown": source_breakdown,
+            "rules_version": self.rules.get("version", "unknown"),
+            "detection_enabled": self.enabled,
+            "min_confidence_threshold": self.min_confidence,
         }
         
-        # Count indicator types
-        for indicators in indicators_per_article.values():
-            for indicator in indicators:
-                indicator_type = indicator.indicator_type
-                report["indicator_types"][indicator_type] = \
-                    report["indicator_types"].get(indicator_type, 0) + 1
-        
+        logger.info(f"Transparency report complete: {report['articles_with_indicators']}/"
+                   f"{report['total_articles']} articles with indicators")
         return report

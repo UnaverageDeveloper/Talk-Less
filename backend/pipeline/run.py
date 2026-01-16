@@ -85,7 +85,10 @@ def run_pipeline():
     ingester = ArticleIngester(configs["sources"])
     comparer = ArticleComparer(configs["pipeline"].get("comparison", {}))
     summarizer = ArticleSummarizer(configs["pipeline"].get("summarization", {}))
-    bias_detector = BiasDetector(configs["bias_indicators"])
+    bias_detector = BiasDetector(
+        configs["pipeline"].get("bias_detection", {}),
+        str(backend_dir / "config" / "bias_indicators.yaml")
+    )
     
     # Stage 1: Ingestion
     logger.info("Stage 1: Fetching articles from sources...")
@@ -122,25 +125,33 @@ def run_pipeline():
     perspective_analyses = {}
     for group in groups:
         analysis = comparer.compare_perspectives(group)
-        perspective_analyses[group.topic] = analysis
+        perspective_analyses[group.group_id] = analysis
+    
+    # Check for coverage gaps
+    all_sources = set(configs["sources"].get("sources", {}).keys())
+    coverage_gaps = comparer.find_coverage_gaps(groups, all_sources)
+    logger.info(f"Found {len(coverage_gaps)} coverage gaps")
     
     # Stage 5: Summarization
     logger.info("Stage 5: Generating summaries...")
     summaries = []
+    failed_summaries = []
     for group in groups:
         try:
-            perspective_analysis = perspective_analyses.get(group.topic, {})
+            perspective_analysis = perspective_analyses.get(group.group_id, {})
             summary = summarizer.generate_summary(group, perspective_analysis)
             
-            if summarizer.validate_summary(summary):
+            if summary:
                 summaries.append(summary)
-                logger.info(f"Generated summary for: {group.topic}")
+                logger.info(f"✓ Generated summary for: {group.topic[:60]}...")
             else:
-                logger.warning(f"Summary validation failed for: {group.topic}")
+                failed_summaries.append(group.topic)
+                logger.warning(f"✗ Summary generation failed for: {group.topic[:60]}...")
         except Exception as e:
             logger.error(f"Error generating summary for {group.topic}: {e}")
+            failed_summaries.append(group.topic)
     
-    logger.info(f"Generated {len(summaries)} summaries")
+    logger.info(f"Generated {len(summaries)}/{len(groups)} summaries successfully")
     
     # Stage 6: Transparency Report
     logger.info("Stage 6: Generating transparency report...")
@@ -154,12 +165,22 @@ def run_pipeline():
     # TODO: Export public data
     # TODO: Update cache
     
+    # For now, log summary of what would be stored
+    logger.info("Output summary:")
+    for summary in summaries[:3]:  # Show first 3
+        logger.info(f"  - {summary.topic[:60]}... ({len(summary.sources)} sources)")
+    if len(summaries) > 3:
+        logger.info(f"  ... and {len(summaries) - 3} more")
+    
     logger.info("=" * 60)
     logger.info("Pipeline completed successfully")
     logger.info(f"  Articles processed: {len(articles)}")
     logger.info(f"  Article groups: {len(groups)}")
     logger.info(f"  Summaries generated: {len(summaries)}")
+    if failed_summaries:
+        logger.info(f"  Summaries failed: {len(failed_summaries)}")
     logger.info(f"  Bias indicators found: {len(article_bias)}")
+    logger.info(f"  Coverage gaps: {len(coverage_gaps)}")
     logger.info("=" * 60)
 
 

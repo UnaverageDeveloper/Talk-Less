@@ -28,9 +28,22 @@
   - Graceful degradation if Redis unavailable
   - Configurable TTL
   - Cache key generation
-- [ ] Implement embedding-based article grouping in `comparison.py`
-- [ ] Implement LLM summarization in `summarization.py`
-- [ ] Implement bias detection rules in `bias_detection.py`
+- [x] **Implement embedding-based article grouping in `comparison.py`** ✅ COMPLETE
+  - Sentence transformer embeddings (all-MiniLM-L6-v2)
+  - DBSCAN clustering algorithm
+  - Perspective analysis
+  - Coverage gap detection
+- [x] **Implement LLM summarization in `summarization.py`** ✅ COMPLETE
+  - OpenAI (GPT-4) and Anthropic (Claude) integration
+  - Transformative summary generation with citations
+  - Summary validation (length, citations, distinctness)
+  - Retry logic for failed generations
+- [x] **Implement bias detection rules in `bias_detection.py`** ✅ COMPLETE
+  - Rule-based detection engine
+  - Loaded language detection
+  - Attribution quality checking
+  - Framing analysis
+  - Transparency reporting
 
 #### Configuration
 - [ ] Add real news sources to `sources.yaml` (requires research)
